@@ -30,6 +30,7 @@ A continuación se describen los pasos realizados para configurar la práctica:
 7. [Habilitar Inter-VLAN en Switch MultiLayer](#habilitar-inter-vlan-en-switch-multilayer)
 8. [Configurar Static Routing en Switch MultiLayer](#configurar-static-routing-en-switch-multilayer)
 9. [Configurar Listas de Control de Acceso (ACL)](#configurar-listas-de-control-de-acceso-acl)
+10. [Notas](#notas)
 
 ### Crear VLANs en Switches
 
@@ -110,22 +111,13 @@ BCENTRAL(config)#do write
 
 Configurar los puertos de enlace que conectan este Switch normal a un Switch MultiLayer como troncales, para que permitan pasar el tráfico de todas las VLANs.
 
-#### M2, T9 y Biblioteca Central
+#### M2, T3, T9 y Biblioteca Central
 ```bash
 M2(config)#int f0/1
 M2(config-if)#switchport mode trunk
 M2(config-if)#switchport trunk allowed vlan 15,25,35
 M2(config-if)#exit
 M2(config)#do write
-```
-
-#### T9
-```bash
-T9(config)#int f0/1
-T9(config-if)#switchport mode trunk
-T9(config-if)#switchport trunk allowed vlan 15,25,35
-T9(config-if)#exit
-T9(config)#do write
 ```
 
 ### Crear VLANs en Switches MultiLayer
@@ -291,80 +283,68 @@ MLSBCENTRAL(config)#do write
 
 ### Configurar Listas de Control de Acceso (ACL)
 
-#### M2
+#### M2, T9 y Biblioteca Central
 ```bash
-MLSM2(config)#ip access-list extended BLOCK_HACIA_SOPORTE
-MLSM2(config-ext-nacl)#deny ip any 192.168.45.0 0.0.0.255
-MLSM2(config-ext-nacl)#permit ip any any
+MLSM2(config)#ip access-list extended ACL_VISITANTES
+MLSM2(config-ext-nacl)#permit icmp any 192.168.45.0 0.0.0.255 echo-reply # Permitir respuestas ICMP a SOPORTE unicamente
 MLSM2(config-ext-nacl)#exit
-MLSM2(config)#ip access-list extended BLOCK_VISITANTES
-MLSM2(config-ext-nacl)#deny ip 192.168.25.0 0.0.0.255 any
-MLSM2(config-ext-nacl)#permit ip any any
+
+MLSM2(config)#ip access-list extended ACL_RECURSOS
+MLSM2(config-ext-nacl)#permit icmp any 192.168.45.0 0.0.0.255 echo-reply # Permitir respuestas ICMP a SOPORTE
+MLSM2(config-ext-nacl)#deny icmp any 192.168.45.0 0.0.0.255 echo # Denegar peticion ICMP a SOPORTE
+MLSM2(config-ext-nacl)#permit icmp any any echo # Permitir tráfico ICMP (ping)
+MLSM2(config-ext-nacl)#permit icmp any any echo-reply # Permitir respuestas de ICMP (ping)
 MLSM2(config-ext-nacl)#exit
+
 MLSM2(config)#int vlan 25
-MLSM2(config-if)#ip access-group BLOCK_HACIA_SOPORTE in
-MLSM2(config-if)#ip access-group BLOCK_VISITANTES in
-MLSM2(config-if)#exit
-MLSM2(config)#int vlan 35
-MLSM2(config-if)#ip access-group BLOCK_HACIA_SOPORTE in
+MLSM2(config-if)#ip access-group ACL_VISITANTES in
+MLSM2(config-if)#int vlan 35
+MLSM2(config-if)#ip access-group ACL_RECURSOS in
 MLSM2(config-if)#exit
 MLSM2(config)#do write
 ```
 
 #### T3
 ```bash
-MLST3(config)#ip access-list extended SOPORTE_SALIDA
-MLST3(config-ext-nacl)#permit ip any any
+MLST3(config)#ip access-list extended ACL_SOPORTE
+MLST3(config-ext-nacl)#permit icmp any any echo
+MLST3(config-ext-nacl)#permit icmp any any echo-reply
 MLST3(config-ext-nacl)#exit
+
+MLST3(config)#ip access-list extended ACL_RECURSOS
+MLST3(config-ext-nacl)#permit icmp any 192.168.45.0 0.0.0.255 echo-reply
+MLST3(config-ext-nacl)#deny icmp any 192.168.45.0 0.0.0.255 echo
+MLST3(config-ext-nacl)#permit icmp any any echo
+MLST3(config-ext-nacl)#permit icmp any any echo-reply
+MLST3(config-ext-nacl)#exit
+
 MLST3(config)#int vlan 15
-MLST3(config-if)#ip access-group SOPORTE_SALIDA out
-MLST3(config-if)#exit
-MLST3(config)#ip access-list extended BLOCK_HACIA_SOPORTE
-MLST3(config-ext-nacl)#deny ip any 192.168.45.0 0.0.0.255
-MLST3(config-ext-nacl)#permit ip any any
-MLST3(config-ext-nacl)#exit
-MLST3(config)#int vlan 35
-MLST3(config-if)#ip access-group BLOCK_HACIA_SOPORTE in
+MLST3(config-if)#ip access-group ACL_SOPORTE out
+MLST3(config-if)#int vlan 35
+MLST3(config-if)#ip access-group ACL_RECURSOS in
 MLST3(config-if)#exit
 MLST3(config)#do write
 ```
 
-#### T9
+### Notas
+
+#### Mostrar listas de acceso
 ```bash
-MLST9(config)#ip access-list extended BLOCK_HACIA_SOPORTE
-MLST9(config-ext-nacl)#deny ip any 192.168.45.0 0.0.0.255
-MLST9(config-ext-nacl)#permit ip any any
-MLST9(config-ext-nacl)#exit
-MLST9(config)#ip access-list extended BLOCK_VISITANTES
-MLST9(config-ext-nacl)#deny ip 192.168.65.0 0.0.0.255 any
-MLST9(config-ext-nacl)#permit ip any any
-MLST9(config-ext-nacl)#exit
-MLST9(config)#int vlan 25
-MLST9(config-if)#ip access-group BLOCK_HACIA_SOPORTE in
-MLST9(config-if)#ip access-group BLOCK_VISITANTES in
-MLST9(config-if)#exit
-MLST9(config)#int vlan 35
-MLST9(config-if)#ip access-group BLOCK_HACIA_SOPORTE in
-MLST9(config-if)#exit
-MLST9(config)#do write
+do show access-lists
 ```
 
-#### Biblioteca Central
+#### Mostrar listas de acceso asignadas en interfaces
 ```bash
-MLSBCENTRAL(config)#ip access-list extended BLOCK_HACIA_SOPORTE
-MLSBCENTRAL(config-ext-nacl)#deny ip any 192.168.45.0 0.0.0.255
-MLSBCENTRAL(config-ext-nacl)#permit ip any any
-MLSBCENTRAL(config-ext-nacl)#exit
-MLSBCENTRAL(config)#ip access-list extended BLOCK_VISITANTES
-MLSBCENTRAL(config-ext-nacl)#deny ip 192.168.85.0 0.0.0.255 any
-MLSBCENTRAL(config-ext-nacl)#permit ip any any
-MLSBCENTRAL(config-ext-nacl)#exit
-MLSBCENTRAL(config)#int vlan 25
-MLSBCENTRAL(config-if)#ip access-group BLOCK_HACIA_SOPORTE in
-MLSBCENTRAL(config-if)#ip access-group BLOCK_VISITANTES in
-MLSBCENTRAL(config-if)#exit
-MLSBCENTRAL(config)#int vlan 35
-MLSBCENTRAL(config-if)#ip access-group BLOCK_HACIA_SOPORTE in
-MLSBCENTRAL(config-if)#exit
-MLSBCENTRAL(config)#do write
+do sh run | I interface| access-group
+```
+
+#### Eliminar lista de acceso
+```bash
+no ip access-list extended ACL_RECURSOS
+```
+
+#### Eliminar lista de acceso asignada en interfaz
+```bash
+int vlan 35
+no ip access-group ACL_RECURSOS <in/out (depende de como se creo la lista de acceso)>
 ```
