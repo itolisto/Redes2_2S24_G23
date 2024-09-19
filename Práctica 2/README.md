@@ -30,7 +30,10 @@ A continuación se describen los pasos realizados para configurar la práctica:
 7. [Habilitar Inter-VLAN en Switch MultiLayer](#habilitar-inter-vlan-en-switch-multilayer)
 8. [Configurar Static Routing en Switch MultiLayer](#configurar-static-routing-en-switch-multilayer)
 9. [Configurar Listas de Control de Acceso (ACL)](#configurar-listas-de-control-de-acceso-acl)
-10. [Notas](#notas)
+10. [Configurar LACP](#configurar-lacp)
+11. [Configurar OSPF](#configurar-ospf)
+12. [Configurar EIGRP](#configurar-eigrp)
+13. [Notas](#notas)
 
 ### Crear VLANs en Switches
 
@@ -145,7 +148,7 @@ Configurar los puertos de enlace que conectan este Switch normal a un Switch Mul
 
 #### M2, T9 y Biblioteca Central
 ```bash
-MLSM2(config)#int range f0/1-2
+MLSM2(config)#int range f0/1-5 // Este rango nos servira luego para configurar LACP
 MLSM2(config-if-range)#switchport trunk encapsulation dot1q
 MLSM2(config-if-range)#switchport mode trunk
 MLSM2(config-if-range)#switchport trunk allowed vlan 15,25,35
@@ -155,7 +158,7 @@ MLSM2(config)#do write
 
 #### T3
 ```bash
-MLST3(config)#int range f0/1-13
+MLST3(config)#int range f0/1-13 // Este rango nos servira luego para configurar LACP
 MLST3(config-if-range)#switchport trunk encapsulation dot1q
 MLST3(config-if-range)#switchport mode trunk
 MLST3(config-if-range)#switchport trunk allowed vlan 15,25,35
@@ -326,6 +329,78 @@ MLST3(config-if)#exit
 MLST3(config)#do write
 ```
 
+
+
+### Configurar LACP
+
+#### M2, T9 y Biblioteca Central
+
+Ya que se configuro una única interfaz hasta este punto, vamos a desconfigurarla para configurar la dirección IP en el port-channel.
+
+M2: 11.0.0.2
+T9: 12.0.0.2 
+Biblioteca central: 13.0.0.2
+
+```bash
+MLSM2(config)#int f0/2
+MLSM2(config-if)#no ip address
+
+MLSM2(config)#int range f0/2-5
+MLSM2(config-if-range)#no switchport
+MLSM2(config-if-range)#channel-group 1 mode active
+MLSM2(config-if-range)#channel-protocol lacp
+MLSM2(config-if-range)#interface Port-channel1
+MLSM2(config-if)#ip address <ip salida> 255.255.255.0
+MLSM2(config-if)# exit
+MLSM2(config)# do write
+```
+
+#### T3
+
+```bash
+MLST3(config)#int f0/2
+MLST3(config-if)#no ip address
+MLST3(config-if)#int f0/6
+MLST3(config-if)#no ip address
+MLST3(config-if)#int f0/10
+MLST3(config-if)#no ip address
+MLST3(config)#exit
+
+MLST3(config)#int range f0/2-5
+MLSM2(config-if-range)#no switchport
+MLSM2(config-if-range)#channel-group 1 mode active
+MLSM2(config-if-range)#channel-protocol lacp
+MLSM2(config-if-range)#interface Port-channel1
+MLSM2(config-if)#ip address 11.0.0.3 255.255.255.0
+MLSM2(config-if)#exit
+
+MLST3(config)#int range f0/6-9
+MLSM2(config-if-range)#no switchport
+MLSM2(config-if-range)#channel-group 2 mode active
+MLSM2(config-if-range)#channel-protocol lacp
+MLSM2(config-if-range)#interface Port-channel2
+MLSM2(config-if)#ip address 13.0.0.3 255.255.255.0
+MLSM2(config-if)#exit
+
+MLST3(config)#int range f0/10-13
+MLSM2(config-if-range)#no switchport
+MLSM2(config-if-range)#channel-group 3 mode active
+MLSM2(config-if-range)#channel-protocol lacp
+MLSM2(config-if-range)#interface Port-channel3
+MLSM2(config-if)#ip address 12.0.0.3 255.255.255.0
+MLSM2(config-if)#exit
+
+MLST3(config)#do write
+```
+
+### Configurar OSPF
+
+TODO
+
+### Configurar EIGRP
+
+TODO
+
 ### Notas
 
 #### Mostrar listas de acceso
@@ -347,4 +422,9 @@ no ip access-list extended ACL_RECURSOS
 ```bash
 int vlan 35
 no ip access-group ACL_RECURSOS <in/out (depende de como se creo la lista de acceso)>
+```
+
+#### Listas canales EtherChannel (LACP)
+```bash
+do show etherchannel summary
 ```
