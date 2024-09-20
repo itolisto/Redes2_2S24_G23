@@ -395,7 +395,87 @@ MLST3(config)#do write
 
 ### Configurar OSPF
 
-TODO
+Para ver que puertos o interfaces, incluso redes que indican la letra C, que estan listos para conectarse
+se ingresa el comando 
+```bash
+show ip route
+```
+
+Para ver que configuraciones de OSPF hay que agregar
+#### Para el switch T3
+```bash
+router ospf 1
+router-id 3.3.3.3           
+network 11.0.0.0 0.0.0.255 area 23  
+network 12.0.0.0 0.0.0.255 area 23  
+network 13.0.0.0 0.0.0.255 area 23 
+network 192.168.35.0 0.0.0.255 area 23
+network 192.168.45.0 0.0.0.255 area 23
+```
+Se configura los puertos con el md5 de autenticación
+```bash
+interface Port-channel1
+ip ospf message-digest-key 23 md5 redes2-g23  
+ip ospf authentication message-digest
+exit
+interface Port-channel2
+ip ospf message-digest-key 23 md5 redes2-g23
+ip ospf authentication message-digest
+exit
+interface Port-channel3
+ip ospf message-digest-key 23 md5 redes2-g23
+ip ospf authentication message-digest
+exit
+```
+#### Para el Switch M2
+```bash
+router ospf 1
+router-id 2.2.2.2          
+network 11.0.0.0 0.0.0.255 area 23  
+network 192.168.15.0 0.0.0.255 area 23  
+network 192.168.25.0 0.0.0.255 area 23 
+exit
+interface Port-channel1
+ip ospf message-digest-key 23 md5 redes2-g23  
+ip ospf authentication message-digest
+exit
+```
+
+#### Para el Switch T9
+```bash
+router ospf 1
+router-id 9.9.9.9          
+network 12.0.0.0 0.0.0.255 area 23  
+network 192.168.55.0 0.0.0.255 area 23  
+network 192.168.65.0 0.0.0.255 area 23 
+exit
+interface Port-channel1
+ip ospf message-digest-key 23 md5 redes2-g23  
+ip ospf authentication message-digest
+exit
+```
+
+
+#### Para el Switch Biblioteca Central
+```bash
+router ospf 1
+router-id 1.1.1.1         
+network 13.0.0.0 0.0.0.255 area 23  
+network 192.168.75.0 0.0.0.255 area 23  
+network 192.168.85.0 0.0.0.255 area 23 
+exit
+interface Port-channel1
+ip ospf message-digest-key 23 md5 redes2-g23  
+ip ospf authentication message-digest
+exit
+```
+Para observar las configuraciones realizadas se ingresa el comando y mostrar sus resultados
+
+```bash
+show ip ospf neighbor
+```
+
+
 
 ### Configurar EIGRP
 
