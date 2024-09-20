@@ -399,7 +399,54 @@ TODO
 
 ### Configurar EIGRP
 
-TODO
+#### Multilayer Switch 1
+
+```bash
+MLSM2(config)#router eigrp 23
+MLSM2(config-router)#network 11.0.0.2 0.0.0.255
+MLSM2(config-router)#passive-interface f0/1
+MLSM2(config-router)#no auto-summary
+MLSM2(config-router)#end
+```
+
+#### Multilayer Switch 2
+
+```bash
+MLST3(config)#router eigrp 23
+MLST3(config-router)#network 11.0.0.3 0.0.0.255
+MLST3(config-router)#network 12.0.0.3 0.0.0.255
+MLST3(config-router)#network 13.0.0.3 0.0.0.255
+MLST3(config-router)#passive-interface f0/1
+MLST3(config-router)#no auto-summary
+MLST3(config-router)#end
+```
+
+#### Multilayer Switch 3
+
+```bash
+MLST9(config)#router eigrp 23
+MLST9(config-router)#network 12.0.0.3 0.0.0.255
+MLST9(config-router)#passive-interface f0/1
+MLST9(config-router)#no auto-summary
+MLST9(config-router)#end
+```
+
+#### Multilayer Switch 0
+
+```bash
+MLSBCENTRAL(config)#router eigrp 23
+MLSBCENTRAL(config-router)#network 13.0.0.3 0.0.0.255
+MLSBCENTRAL(config-router)#passive-interface f0/1
+MLSBCENTRAL(config-router)#no auto-summary
+MLSBCENTRAL(config-router)#end
+```
+
+#### Verificar el Routing EIGRP
+
+```bash
+MLSBCENTRAL#show ip eigrp neighbors
+MLSBCENTRAL#show ip protocols
+```
 
 ### Notas
 
