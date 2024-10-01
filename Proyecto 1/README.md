@@ -25,9 +25,10 @@ A continuación se describen los pasos realizados para configurar la práctica:
 2. [Configurar VLAN Trunking Protocol](#configurar-vlan-trunking-protocol)
 3. [Configurar enlaces truncales](#configurar-enlaces-truncales)
 4. [Configurar VLANs](#configurar-vlans)
-4. [Configurar dispositivos finales](#configurar-dispositivos-finales)
-5. [Configurar LACP](#configurar-servidores-dhcp)
-6. [Configurar EIGRP](#configurar-eigrp)
+5. [Configurar dispositivos finales](#configurar-dispositivos-finales)
+6. [Configurar LACP](#configurar-lacp)
+7. [Configurar Interfaces VLAN en Switch MultiLayer](#configurar-interfaces-vlan-en-switch-multilayer)
+8. [Configurar EIGRP](#configurar-eigrp)
 
 ### Configurar servidores DHCP
 
@@ -158,14 +159,6 @@ MLS1(config-if-range)#channel-group 1 mode active
 MLS1(config-if-range)#channel-protocol lacp
 MLS1(config-if-range)#interface Port-channel1
 MLS1(config-if)#ip address <insertar ip> 255.255.255.192
-```
-
-### Habilitar Inter-VLAN en Switch MultiLayer
-
-#### M2, T3, T9 y Biblioteca Central
-```bash
-MLSM2(config)#ip routing
-MLSM2(config)#do write
 ```
 
 ### Configurar Interfaces VLAN en Switch MultiLayer
