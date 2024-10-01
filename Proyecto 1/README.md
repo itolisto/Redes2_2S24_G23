@@ -22,7 +22,7 @@ A continuación se describen los pasos realizados para configurar la práctica:
 
 ## Índice
 1. [Configurar servidores DHCP](#configurar-servidores-dhcp)
-2. [Configurar MultiLayer Switch Edificios](#configurar-multilayer-switch-edificios)
+2. [Configurar MultiLayer Switches](#configurar-multilayer-switches)
 3. [Configurar LACP](#configurar-servidores-dhcp)
 4. [Configurar EIGRP](#configurar-eigrp)
 
@@ -56,18 +56,35 @@ A continuación se describen los pasos realizados para configurar la práctica:
 | Subnet3    | 192.168.23.129               | 192.168.23.130   | 255.255.255.192 | 62       |
 | Subnet4    | 192.168.23.129               | 192.168.23.194   | 255.255.255.192 | 62       |
 
-### Configurar MultiLayer Switch Edificios
+### Configurar MultiLayer Switches
 
+Para evitar crear las VLAN en todos los MultiLayer Switch y Switch Layer 2 se escoge el MultiLayer Switch 0 (MLS0) como servidor y el resto se configuran en modo cliente
 
+#### MLS0
 
+```bash
+Switch>en
+Switch#conf t
+Switch(config)#hostname MLS0
 
+MLSM2(config)#vtp mode server
+MLSM2(config)#vtp domain usac.g23
+MLSM2(config)#vtp password g23
 
+MLSM2(config)#do write
+```
 
+#### MLS1 al MLS11 y S0 al S3
 
+```bash
+Switch>en
+Switch#conf t
+Switch(config)#hostname [MLS<1-11>] / [S<0-3>]
 
-
-
-
+MLSM2(config)#vtp mode client
+MLSM2(config)#vtp domain usac.g23
+MLSM2(config)#vtp password g23
+```
 
 ### Configurar LACP
 
@@ -83,6 +100,9 @@ Biblioteca central: 13.0.0.2
 Switch>en
 Switch#conf t
 Switch(config)#hostname MLS0
+
+
+MLSM2(config)#int g1/0/1
 
 MLSM2(config)#int g1/0/1
 MLSM2(config-if)#no switchport
