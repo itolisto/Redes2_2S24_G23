@@ -25,6 +25,7 @@ A continuación se describen los pasos realizados para configurar la práctica:
 2. [Configurar VLAN Trunking Protocol](#configurar-vlan-trunking-protocol)
 3. [Configurar enlaces truncales](#configurar-enlaces-truncales)
 4. [Configurar VLANs](#configurar-vlans)
+4. [Configurar dispositivos finales](#configurar-dispositivos-finales)
 5. [Configurar LACP](#configurar-servidores-dhcp)
 6. [Configurar EIGRP](#configurar-eigrp)
 
@@ -97,16 +98,16 @@ Para permitir la propagación de la información de las VLAN por todos los Switc
 | MLS3   | f0/1-5 (1-3 LACP)          |
 | MLS4   | f0/4-5                     |
 | MLS5   | f0/5-6                     |
-| MLS6   | f0/5-6                     |
+| MLS6   | f0/5-6 y f0/10-11          |
 | MLS7   | f0/1-5 (1-3 LACP)          |
 | MLS8   | f0/4-5                     |
 | MLS9   | f0/5-6                     |
-| MLS10  | f0/5-6                     |
+| MLS10  | f0/5-6 y f0/10-11          |
 | MLS11  | g1/1/1-2                   |
 
 ```bash
 MLS0(config)#int range <insertar rango>
-MLS0(config)#switchport trunk encapsulation dot1q // Solo para interfaces FastEthernet
+MLS0(config)#switchport trunk encapsulation dot1q // Solo para interfaces FastEthernet conectando a Switch Layer 2 no MultiLayer Switch
 MLS0(config-if-range)#switchport mode trunk
 ```
 
@@ -125,14 +126,21 @@ MLS0(config)#vlan <insertar numero>
 MLS0(config-vlan)#name <insertar nombre>
 ```
 
+### Configurar dispositivos finales
 
+Luego de crear las VLANs, podemos continuar a configurar los interfaces que conectan con los dispositivos finales en modo acceso con su correspondiente VLAN.
 
+| Switch | Rango de interfaz | VLAN asignada |
+| S0     | f0/11-12          | 10 (Naranja)  |
+| S1     | f0/11-12          | 20 (Verde)    |
+| S2     | f0/11-12          | 20 (Verde)    |
+| S3     | f0/11-12          | 10 (Naranja)  |
 
-
-
-
-
-
+```bash
+S0(config)#int range <insertar rango>
+S0(config-if)#switchport mode access
+S0(config-if)#switchport access vlan <insert vlan>
+```
 
 ### Configurar LACP
 
