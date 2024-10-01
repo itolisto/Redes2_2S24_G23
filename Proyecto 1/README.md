@@ -23,8 +23,9 @@ A continuación se describen los pasos realizados para configurar la práctica:
 ## Índice
 1. [Configurar servidores DHCP](#configurar-servidores-dhcp)
 2. [Configurar VLAN Trunking Protocol](#configurar-vlan-trunking-protocol)
-3. [Configurar LACP](#configurar-servidores-dhcp)
-4. [Configurar EIGRP](#configurar-eigrp)
+3. [Configurar enlaces truncales](#configurar-enlaces-truncales)
+4. [Configurar LACP](#configurar-servidores-dhcp)
+5. [Configurar EIGRP](#configurar-eigrp)
 
 ### Configurar servidores DHCP
 
@@ -67,11 +68,9 @@ Switch>en
 Switch#conf t
 Switch(config)#hostname MLS0
 
-MLSM0(config)#vtp mode server
-MLSM0(config)#vtp domain usac.g23
-MLSM0(config)#vtp password g23
-
-MLSM0(config)#do write
+MLS0(config)#vtp mode server
+MLS0(config)#vtp domain usac.g23
+MLS0(config)#vtp password g23
 ```
 
 #### MLS1 al MLS11 y S0 al S3
@@ -81,10 +80,42 @@ Switch>en
 Switch#conf t
 Switch(config)#hostname [MLS<1-11>] / [S<0-3>]
 
-MLSM1(config)#vtp mode client
-MLSM1(config)#vtp domain usac.g23
-MLSM1(config)#vtp password g23
+MLS1(config)#vtp mode client
+MLS1(config)#vtp domain usac.g23
+MLS1(config)#vtp password g23
 ```
+
+### Configurar enlaces truncales
+
+Para permitir la propagación de la información de las VLAN por todos los Switches en el dominio, se necesita configurar los puertos en modo truncal entre ellos.
+
+| Switch | Rango interfaces           |
+| MLS0   | g1/1/1-2                   |
+| MLS1   | g1/0/1-3 (LACP) y g1/1/1-3 |
+| MLS2   | g1/0/1-3 (LACP) y g1/1/1-3 |
+| MLS3   | f0/1-5 (1-3 LACP)          |
+| MLS4   | f0/4-5                     |
+| MLS5   | f0/5-6                     |
+| MLS6   | f0/5-6                     |
+| MLS7   | f0/1-5 (1-3 LACP)          |
+| MLS8   | f0/4-5                     |
+| MLS9   | f0/5-6                     |
+| MLS10  | f0/5-6                     |
+| MLS11  | g1/1/1-2                   |
+
+```bash
+MLS0(config)#int range <insertar rango>
+MLS0(config)#switchport trunk encapsulation dot1q // Solo para interfaces FastEthernet
+MLS0(config-if-range)#switchport mode trunk
+```
+
+
+
+
+
+
+
+
 
 ### Configurar LACP
 
