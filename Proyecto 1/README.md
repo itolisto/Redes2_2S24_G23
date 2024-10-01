@@ -24,8 +24,9 @@ A continuación se describen los pasos realizados para configurar la práctica:
 1. [Configurar servidores DHCP](#configurar-servidores-dhcp)
 2. [Configurar VLAN Trunking Protocol](#configurar-vlan-trunking-protocol)
 3. [Configurar enlaces truncales](#configurar-enlaces-truncales)
-4. [Configurar LACP](#configurar-servidores-dhcp)
-5. [Configurar EIGRP](#configurar-eigrp)
+4. [Configurar VLANs](#configurar-vlans)
+5. [Configurar LACP](#configurar-servidores-dhcp)
+6. [Configurar EIGRP](#configurar-eigrp)
 
 ### Configurar servidores DHCP
 
@@ -108,6 +109,22 @@ MLS0(config)#int range <insertar rango>
 MLS0(config)#switchport trunk encapsulation dot1q // Solo para interfaces FastEthernet
 MLS0(config-if-range)#switchport mode trunk
 ```
+
+### Configurar VLANs
+
+Una vez configurados los enlaces truncales, procedemos a crear las VLAN en el Switch Servidor
+
+| VLAN | Nombre                |
+| 10   | VLAN_Naranja_Grupo_23 |
+| 20   | VLAN_Verde_Grupo_23   |
+
+#### MLS0
+
+```bash
+MLS0(config)#vlan <insertar numero>
+MLS0(config-vlan)#name <insertar nombre>
+```
+
 
 
 
