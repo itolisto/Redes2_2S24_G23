@@ -1,10 +1,10 @@
 # Proyecto 1
 
-Topología para la primera práctica de Redes de Computadoras 2 del 2do Semestre de 2024
+Topología para el primer proyecto de Redes de Computadoras 2 del 2do Semestre de 2024
 
 ## Requisitos
 
-Para correr la práctica se de contar con los siguientes requisitos:
+Para correr el proyecto se debe contar con los siguientes requisitos:
 
 - Cisco Packet Tracer 8.2.2.0400 [Aquí](https://www.netacad.com/portal/resources/packet-tracer)
 
@@ -18,7 +18,7 @@ Para correr la práctica se de contar con los siguientes requisitos:
 
 ## Configuración
 
-A continuación se describen los pasos realizados para configurar la práctica:
+A continuación se describen los pasos realizados para configurar el proyecto:
 
 ## Índice
 1. [Configurar servidores DHCP](#configurar-servidores-dhcp)
