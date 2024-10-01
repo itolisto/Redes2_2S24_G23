@@ -25,9 +25,9 @@ A continuación se describen los pasos realizados para configurar el proyecto:
 2. [Configurar VLAN Trunking Protocol](#configurar-vlan-trunking-protocol)
 3. [Configurar enlaces truncales](#configurar-enlaces-truncales)
 4. [Configurar VLANs](#configurar-vlans)
-5. [Configurar dispositivos finales](#configurar-dispositivos-finales)
+5. [Configurar enlaces en modo acceso](#configurar-enlaces-en-modo-acceso)
 6. [Configurar LACP](#configurar-lacp)
-7. [Configurar Interfaces VLAN en Switch MultiLayer](#configurar-interfaces-vlan-en-switch-multilayer)
+7. [Asignar direcciones IP en Switch MultiLayer](#asignar-direcciones-ip-en-switch-multilayer)
 8. [Configurar EIGRP](#configurar-eigrp)
 
 ### Configurar servidores DHCP
@@ -54,13 +54,13 @@ A continuación se describen los pasos realizados para configurar el proyecto:
 | Pool Name  | Default gateway & DNS Server | Start IP Address | Subnet Mask     | Max User |
 | ---------- | ---------------------------- | ---------------- | --------------- | -------- |
 | serverPool | 192.168.23.1                 | 192.168.23.0     | 255.255.255.192 | 64       |
-| Subnet1    | 192.168.23.1                 | 192.168.23.4     | 255.255.255.192 | 60       |
+| Subnet1    | 192.168.23.1                 | 192.168.23.8     | 255.255.255.192 | 56       |
 | Subnet2    | 192.168.23.1                 | 192.168.23.66    | 255.255.255.192 | 62       |
 
 | Pool Name  | Default gateway & DNS Server | Start IP Address | Subnet Mask     | Max User |
 | ---------- | ---------------------------- | ---------------- | --------------- | -------- |
 | serverPool | 192.168.23.129               | 192.168.23.128   | 255.255.255.192 | 64       |
-| Subnet3    | 192.168.23.129               | 192.168.23.132   | 255.255.255.192 | 60       |
+| Subnet3    | 192.168.23.129               | 192.168.23.136   | 255.255.255.192 | 56       |
 | Subnet4    | 192.168.23.129               | 192.168.23.194   | 255.255.255.192 | 62       |
 
 ### Configurar VLAN Trunking Protocol
@@ -117,6 +117,13 @@ MLS0(config-if-range)#switchport mode trunk
 MLS0(config-if-range)#switchport trunk allowed vlan 10,20
 ```
 
+en
+conf t
+int range f0/5-11
+switchport trunk allowed vlan 10,20
+exit
+do write
+
 ### Configurar VLANs
 
 Una vez configurados los enlaces truncales, procedemos a crear las VLAN en el Switch Servidor
@@ -133,7 +140,7 @@ MLS0(config)#vlan <insertar numero>
 MLS0(config-vlan)#name <insertar nombre>
 ```
 
-### Configurar dispositivos finales
+### Configurar enlaces en modo acceso
 
 Luego de crear las VLANs, podemos continuar a configurar los interfaces que conectan con los dispositivos finales en modo acceso con su correspondiente VLAN.
 
@@ -168,69 +175,124 @@ MLS1(config-if-range)#interface Port-channel1
 MLS1(config-if)#ip address <insertar ip> 255.255.255.192
 ```
 
-### Configurar Interfaces VLAN en Switch MultiLayer
+### Asignar direcciones IP en Switch MultiLayer
 
+#### MLS1
 
+```bash
+# Port channel se configuro al momento de configurar LACP
 
+# MLS1 → MLS0
+MLS1(config)#int g1/1/1
+MLS1(config-if)#no switchport
+MLS1(config-if)#ip address 192.168.23.65 255.255.255.192
+MLS1(config-if)#no shutdown
+# MLS1 → MLS2
+MLS1(config-if)#int g1/1/3
+MLS1(config-if)#no switchport
+MLS1(config-if)#ip address 192.168.23.132 255.255.255.192
+MLS1(config-if)#no shutdown
+# MLS1 → MLS11
+MLS1(config-if)#int g1/1/2
+MLS1(config-if)#no switchport
+MLS1(config-if)#ip address 192.168.23.193 255.255.255.192
+MLS1(config-if)#no shutdown
+```
 
+#### MLS2
 
+```bash
+# Port channel se configuro al momento de configurar LACP
 
-
-
-
-
-
-
-
-
-
-### Configurar EIGRP
+# MLS2 → MLS0
+MLS2(config)#int g1/1/1
+MLS2(config-if)#no switchport
+MLS2(config-if)#ip address 192.168.23.66 255.255.255.192
+MLS2(config-if)#no shutdown
+# MLS2 → MLS1
+MLS2(config-if)#int g1/1/3
+MLS2(config-if)#no switchport
+MLS2(config-if)#ip address 192.168.23.4 255.255.255.192
+MLS2(config-if)#no shutdown
+# MLS2 → MLS11
+MLS2(config-if)#int g1/1/2
+MLS2(config-if)#no switchport
+MLS2(config-if)#ip address 192.168.23.194 255.255.255.192
+MLS2(config-if)#no shutdown
+```
 
 #### MLS0
 
 ```bash
-MLSM2(config)#router eigrp 23
-MLSM2(config-router)#network 11.0.0.2 0.0.0.255
-MLSM2(config-router)#passive-interface f0/1
-MLSM2(config-router)#no auto-summary
-MLSM2(config-router)#end
+# MLS0 → MLS1
+MLS0(config)#int g1/1/1
+MLS0(config-if)#no switchport
+MLS0(config-if)#ip address 192.168.23.67 255.255.255.192
+MLS0(config-if)#no shutdown
+# MLS0 → MLS2
+MLS0(config-if)#int g1/1/2
+MLS0(config-if)#no switchport
+MLS0(config-if)#ip address 192.168.23.133 255.255.255.192
+MLS0(config-if)#no shutdown
 ```
 
-#### Multilayer Switch 2
+#### MLS11
 
 ```bash
-MLST3(config)#router eigrp 23
-MLST3(config-router)#network 11.0.0.3 0.0.0.255
-MLST3(config-router)#network 12.0.0.3 0.0.0.255
-MLST3(config-router)#network 13.0.0.3 0.0.0.255
-MLST3(config-router)#passive-interface f0/1
-MLST3(config-router)#no auto-summary
-MLST3(config-router)#end
+# MLS11 → MLS1
+MLS11(config)#int g1/1/1
+MLS11(config-if)#no switchport
+MLS11(config-if)#ip address 192.168.23.195 255.255.255.192
+MLS11(config-if)#no shutdown
+# MLS11 → MLS2
+MLS11(config-if)#int g1/1/2
+MLS11(config-if)#no switchport
+MLS11(config-if)#ip address 192.168.23.5 255.255.255.192
+MLS11(config-if)#no shutdown
 ```
 
-#### Multilayer Switch 3
+### Configurar EIGRP
+
+#### MLS1
 
 ```bash
-MLST9(config)#router eigrp 23
-MLST9(config-router)#network 12.0.0.3 0.0.0.255
-MLST9(config-router)#passive-interface f0/1
-MLST9(config-router)#no auto-summary
-MLST9(config-router)#end
+MLS1(config)#ip routing
+MLS1(config)#router eigrp 23
+MLS1(config-router)#network 192.168.23.0 0.0.0.63
+MLS1(config-router)#network 192.168.23.64 0.0.0.63
+MLS1(config-router)#network 192.168.23.128 0.0.0.63
+MLS1(config-router)#network 192.168.23.192 0.0.0.63
+MLS1(config-router)#no auto-summary
 ```
 
-#### Multilayer Switch 0
+#### MLS2
 
 ```bash
-MLSBCENTRAL(config)#router eigrp 23
-MLSBCENTRAL(config-router)#network 13.0.0.3 0.0.0.255
-MLSBCENTRAL(config-router)#passive-interface f0/1
-MLSBCENTRAL(config-router)#no auto-summary
-MLSBCENTRAL(config-router)#end
+MLS2(config)#ip routing
+MLS2(config)#router eigrp 23
+MLS2(config-router)#network 192.168.23.0 0.0.0.63
+MLS2(config-router)#network 192.168.23.64 0.0.0.63
+MLS2(config-router)#network 192.168.23.128 0.0.0.63
+MLS2(config-router)#network 192.168.23.192 0.0.0.63
+MLS2(config-router)#no auto-summary
 ```
 
-#### Verificar el Routing EIGRP
+#### MLS0
 
 ```bash
-MLSBCENTRAL#show ip eigrp neighbors
-MLSBCENTRAL#show ip protocols
+MLS0(config)#ip routing
+MLS0(config)#router eigrp 23
+MLS0(config-router)#network 192.168.23.64 0.0.0.63
+MLS0(config-router)#network 192.168.23.128 0.0.0.63
+MLS0(config-router)#no auto-summary
+```
+
+#### MLS11
+
+```bash
+MLS11(config)#ip routing
+MLS11(config)#router eigrp 23
+MLS11(config-router)#network 192.168.23.0 0.0.0.63
+MLS11(config-router)#network 192.168.23.192 0.0.0.63
+MLS11(config-router)#no auto-summary
 ```
