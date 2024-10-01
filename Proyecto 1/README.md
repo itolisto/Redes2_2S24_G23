@@ -41,6 +41,7 @@ A continuación se describen los pasos realizados para configurar la práctica:
 2. Seleccionar "IP Configuration" para ingresar valores
 
 | IP Address     | Subnet Mask     | DNS Server | Default Gateway |
+| -------------- | --------------- | ---------- | --------------- |
 | 192.168.23.1   | 255.255.255.192 | 0.0.0.0    | 192.168.23.1    |
 | 192.168.23.129 | 255.255.255.192 | 0.0.0.0    | 192.168.23.129  |
 
@@ -51,11 +52,13 @@ A continuación se describen los pasos realizados para configurar la práctica:
 ![DHCP Servidores](./screenshots/1_3.jpg)
 
 | Pool Name  | Default gateway & DNS Server | Start IP Address | Subnet Mask     | Max User |
+| ---------- | ---------------------------- | ---------------- | --------------- | -------- |
 | serverPool | 192.168.23.1                 | 192.168.23.0     | 255.255.255.192 | 64       |
 | Subnet1    | 192.168.23.1                 | 192.168.23.4     | 255.255.255.192 | 60       |
 | Subnet2    | 192.168.23.1                 | 192.168.23.66    | 255.255.255.192 | 62       |
 
 | Pool Name  | Default gateway & DNS Server | Start IP Address | Subnet Mask     | Max User |
+| ---------- | ---------------------------- | ---------------- | --------------- | -------- |
 | serverPool | 192.168.23.129               | 192.168.23.128   | 255.255.255.192 | 64       |
 | Subnet3    | 192.168.23.129               | 192.168.23.132   | 255.255.255.192 | 60       |
 | Subnet4    | 192.168.23.129               | 192.168.23.194   | 255.255.255.192 | 62       |
@@ -93,6 +96,7 @@ MLS1(config)#vtp password g23
 Para permitir la propagación de la información de las VLAN por todos los Switches en el dominio, se necesita configurar los puertos en modo truncal entre ellos.
 
 | Switch | Rango interfaces           |
+| ------ | -------------------------- |
 | MLS0   | g1/1/1-2                   |
 | MLS1   | g1/0/1-3 (LACP) y g1/1/1-3 |
 | MLS2   | g1/0/1-3 (LACP) y g1/1/1-3 |
@@ -118,6 +122,7 @@ MLS0(config-if-range)#switchport trunk allowed vlan 10,20
 Una vez configurados los enlaces truncales, procedemos a crear las VLAN en el Switch Servidor
 
 | VLAN | Nombre                |
+| ---- | --------------------- |
 | 10   | VLAN_Naranja_Grupo_23 |
 | 20   | VLAN_Verde_Grupo_23   |
 
@@ -133,6 +138,7 @@ MLS0(config-vlan)#name <insertar nombre>
 Luego de crear las VLANs, podemos continuar a configurar los interfaces que conectan con los dispositivos finales en modo acceso con su correspondiente VLAN.
 
 | Switch | Rango de interfaz | VLAN asignada |
+| ------ | ----------------- | ------------- |
 | S0     | f0/11-12          | 10 (Naranja)  |
 | S1     | f0/11-12          | 20 (Verde)    |
 | S2     | f0/11-12          | 20 (Verde)    |
@@ -147,6 +153,7 @@ S0(config-if)#switchport access vlan <insert vlan>
 ### Configurar LACP
 
 | Switch | Rango de interfaz | IP Address     | Subnet Mask     |
+| ------ | ----------------- | -------------- | --------------- |
 | MLS1   | g1/0/1-3          | 192.168.23.2   | 255.255.255.192 |
 | MLS3   | f0/1-3            | 192.168.23.3   | 255.255.255.192 |
 | MLS2   | g1/0/1-3          | 192.168.23.130 | 255.255.255.192 |
