@@ -51,12 +51,12 @@ A continuación se describen los pasos realizados para configurar la práctica:
 
 | Pool Name  | Default gateway & DNS Server | Start IP Address | Subnet Mask     | Max User |
 | serverPool | 192.168.23.1                 | 192.168.23.0     | 255.255.255.192 | 64       |
-| Subnet1    | 192.168.23.1                 | 192.168.23.2     | 255.255.255.192 | 62       |
+| Subnet1    | 192.168.23.1                 | 192.168.23.4     | 255.255.255.192 | 60       |
 | Subnet2    | 192.168.23.1                 | 192.168.23.66    | 255.255.255.192 | 62       |
 
 | Pool Name  | Default gateway & DNS Server | Start IP Address | Subnet Mask     | Max User |
 | serverPool | 192.168.23.129               | 192.168.23.128   | 255.255.255.192 | 64       |
-| Subnet3    | 192.168.23.129               | 192.168.23.130   | 255.255.255.192 | 62       |
+| Subnet3    | 192.168.23.129               | 192.168.23.132   | 255.255.255.192 | 60       |
 | Subnet4    | 192.168.23.129               | 192.168.23.194   | 255.255.255.192 | 62       |
 
 ### Configurar VLAN Trunking Protocol
@@ -109,6 +109,7 @@ Para permitir la propagación de la información de las VLAN por todos los Switc
 MLS0(config)#int range <insertar rango>
 MLS0(config)#switchport trunk encapsulation dot1q // Solo para interfaces FastEthernet conectando a Switch Layer 2 no MultiLayer Switch
 MLS0(config-if-range)#switchport mode trunk
+MLS0(config-if-range)#switchport trunk allowed vlan 10,20
 ```
 
 ### Configurar VLANs
@@ -144,72 +145,34 @@ S0(config-if)#switchport access vlan <insert vlan>
 
 ### Configurar LACP
 
-#### MLS0
-
-Ya que se configuro una única interfaz hasta este punto, vamos a desconfigurarla para configurar la dirección IP en el port-channel.
-
-M2: 11.0.0.2
-T9: 12.0.0.2 
-Biblioteca central: 13.0.0.2
+| Switch | Rango de interfaz | IP Address     | Subnet Mask     |
+| MLS1   | g1/0/1-3          | 192.168.23.2   | 255.255.255.192 |
+| MLS3   | f0/1-3            | 192.168.23.3   | 255.255.255.192 |
+| MLS2   | g1/0/1-3          | 192.168.23.130 | 255.255.255.192 |
+| MLS7   | f0/1-3            | 192.168.23.131 | 255.255.255.192 |
 
 ```bash
-Switch>en
-Switch#conf t
-Switch(config)#hostname MLS0
-
-
-MLSM2(config)#int g1/0/1
-
-MLSM2(config)#int g1/0/1
-MLSM2(config-if)#no switchport
-
-MLSM2(config)#int range f0/2-5
-MLSM2(config-if-range)#no switchport
-MLSM2(config-if-range)#channel-group 1 mode active
-MLSM2(config-if-range)#channel-protocol lacp
-MLSM2(config-if-range)#interface Port-channel1
-MLSM2(config-if)#ip address <ip salida> 255.255.255.0
-MLSM2(config-if)# exit
-MLSM2(config)# do write
+MLS1(config)#int range <insertar rango>
+MLS1(config-if-range)#no switchport
+MLS1(config-if-range)#channel-group 1 mode active
+MLS1(config-if-range)#channel-protocol lacp
+MLS1(config-if-range)#interface Port-channel1
+MLS1(config-if)#ip address <insertar ip> 255.255.255.192
 ```
 
-#### T3
+### Habilitar Inter-VLAN en Switch MultiLayer
 
+#### M2, T3, T9 y Biblioteca Central
 ```bash
-MLST3(config)#int f0/2
-MLST3(config-if)#no ip address
-MLST3(config-if)#int f0/6
-MLST3(config-if)#no ip address
-MLST3(config-if)#int f0/10
-MLST3(config-if)#no ip address
-MLST3(config)#exit
-
-MLST3(config)#int range f0/2-5
-MLSM2(config-if-range)#no switchport
-MLSM2(config-if-range)#channel-group 1 mode active
-MLSM2(config-if-range)#channel-protocol lacp
-MLSM2(config-if-range)#interface Port-channel1
-MLSM2(config-if)#ip address 11.0.0.3 255.255.255.0
-MLSM2(config-if)#exit
-
-MLST3(config)#int range f0/6-9
-MLSM2(config-if-range)#no switchport
-MLSM2(config-if-range)#channel-group 2 mode active
-MLSM2(config-if-range)#channel-protocol lacp
-MLSM2(config-if-range)#interface Port-channel2
-MLSM2(config-if)#ip address 13.0.0.3 255.255.255.0
-MLSM2(config-if)#exit
-
-MLST3(config)#int range f0/10-13
-MLSM2(config-if-range)#no switchport
-MLSM2(config-if-range)#channel-group 3 mode active
-MLSM2(config-if-range)#channel-protocol lacp
-MLSM2(config-if-range)#interface Port-channel3
-MLSM2(config-if)#ip address 12.0.0.3 255.255.255.0
-MLSM2(config-if)#exit
-
-MLST3(config)#do write
+MLSM2(config)#ip routing
+MLSM2(config)#do write
 ```
+
+### Configurar Interfaces VLAN en Switch MultiLayer
+
+
+
+
 
 
 
