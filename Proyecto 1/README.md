@@ -445,3 +445,52 @@ MLS0(config-if)#no shutdown
 #### Cargar página de prueba
 
 ![Página web](./screenshots/11_2.jpg)
+
+
+
+
+### Configuracion HSRP de la red
+#### Lado izquierdo
+
+
+Para esta parte de la red de la topologia se va escoger que Switch se va  escoger que sea de mayor prioridad o menor prioridad, ya que es como un balanceador, un switch que va estar activo y otro que va estar en espera o pasivo, se escoge el switch MLS4 como el switch activo y el MLS5 como el pasivo
+
+```bash
+MLS4(config)#interface vlan 10
+MLS4(config-if)#ip address 192.168.23.2 255.255.255.192
+MLS4(config-if)#standby 1 ip 192.168.23.1
+MLS4(config-if)#standby 1 priority 110   
+MLS4(config-if)#standby 1 preempt       
+MLS4(config-if)#exit
+MLS4(config)#
+MLS4(config)#
+MLS4(config)#interface vlan 20
+MLS4(config-if)#ip address 192.168.23.66 255.255.255.192
+MLS4(config-if)#standby 1 ip 192.168.23.65
+MLS4(config-if)#standby 1 priority 110   
+MLS4(config-if)#standby 1 preempt       
+MLS4(config-if)#exit
+```
+
+Aqui se activa por medio de las VLAN 10 y 20, con las direcciones IP que se tienen configuradas y se da una prioridad de 110 para tener este switch como activo
+![HRSP_MLS4](./screenshots/HRSP_MLS4.jpg)
+
+
+```bash
+MLS5(config)#interface vlan 10
+MLS5(config-if)#ip address 192.168.23.3 255.255.255.192
+MLS5(config-if)#standby 1 ip 192.168.23.1
+MLS5(config-if)#standby 1 priority 90 
+MLS5(config-if)#standby 1 preempt       
+MLS5(config-if)#exit
+MLS5(config)#
+MLS5(config)#interface vlan 20
+MLS5(config-if)#ip address 192.168.23.67 255.255.255.192
+MLS5(config-if)#standby 1 ip 192.168.23.65
+MLS5(config-if)#standby 1 priority 90 
+MLS5(config-if)#standby 1 preempt       
+MLS5(config-if)#exit
+```
+Aqui el switch ha sido configurado con las mismas ip y vlans, pero con la  prioridad mas baja para poner el switch como pasivo o en espera
+
+![HRSP_MLS5](./screenshots/HRSP_MLS5.jpg)
