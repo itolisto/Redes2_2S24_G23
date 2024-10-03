@@ -351,12 +351,12 @@ MLS0(config-if)#ip address 30.0.0.1 255.255.255.0
 MLS0(config-if)#no shutdown
 #VLAN 30 Interface
 MLS0(config-if)#int vlan 30
-MLS0(config-if)#ip address 192.168.23.129 255.255.255.192
+MLS0(config-if)#ip address 192.168.23.193 255.255.255.192
 MLS0(config-if)#no shutdown
 MLS0(config-if)#ip helper-address 30.0.0.10
 #VLAN 40 Interface
 MLS0(config-if)#int vlan 40
-MLS0(config-if)#ip address 192.168.23.193 255.255.255.192
+MLS0(config-if)#ip address 192.168.23.129 255.255.255.192
 MLS0(config-if)#no shutdown
 MLS0(config-if)#ip helper-address 30.0.0.10
 MLS0(config-if)#exit
