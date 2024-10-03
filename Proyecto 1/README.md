@@ -23,13 +23,13 @@ A continuación se describen los pasos realizados para configurar el proyecto:
 ## Índice
 1. [Configurar servidores DHCP](#configurar-servidores-dhcp)
 2. [Configurar VLAN Trunking Protocol](#configurar-vlan-trunking-protocol)
-3. [Configurar enlaces truncales](#configurar-enlaces-truncales)
-4. [Configurar VLANs](#configurar-vlans)
+3. [Configurar VLANs](#configurar-vlans)
+4. [Configurar enlaces en modo truncal](#configurar-enlaces-en-modo-truncal)
 5. [Configurar enlaces en modo acceso](#configurar-enlaces-en-modo-acceso)
 6. [Configurar LACP](#configurar-lacp)
 7. [Asignar direcciones IP en Switch MultiLayer](#asignar-direcciones-ip-en-switch-multilayer)
 8. [Configurar EIGRP](#configurar-eigrp)
-9. [Configurar SVI](#configurar-svi)
+9. [Configurar SVI y DHCP Relay](#configurar-svi-y-dhcp-relay)
 
 ### Configurar servidores DHCP
 
@@ -41,10 +41,10 @@ A continuación se describen los pasos realizados para configurar el proyecto:
 
 2. Seleccionar "IP Configuration" para ingresar valores
 
-| IP Address     | Subnet Mask     | DNS Server | Default Gateway |
-| -------------- | --------------- | ---------- | --------------- |
-| 20.0.0.1       | 255.255.255.252 | 0.0.0.0    | 20.0.0.1        |
-| 20.0.0.2       | 255.255.255.252 | 0.0.0.0    | 20.0.0.2        |
+| IP Address     | Subnet Mask     | Default Gateway | DNS Server |
+| -------------- | --------------- | --------------- | ---------- |
+| 20.0.0.10      | 255.255.255.0   | 20.0.0.1        | 0.0.0.0    |
+| 30.0.0.10      | 255.255.255.0   | 30.0.0.1        | 0.0.0.0    |
 
 ![IP Configuration Servidores](./screenshots/1_2.jpg)
 
@@ -54,19 +54,21 @@ A continuación se describen los pasos realizados para configurar el proyecto:
 
 | Pool Name  | Default gateway & DNS Server | Start IP Address | Subnet Mask     | Max User |
 | ---------- | ---------------------------- | ---------------- | --------------- | -------- |
-| serverPool | 20.0.0.1                     | 192.168.23.0     | 255.255.255.252 | 4        |
-| Subnet1    | 20.0.0.1                     | 192.168.23.2     | 255.255.255.192 | 62       |
-| Subnet2    | 20.0.0.1                     | 192.168.23.66    | 255.255.255.192 | 62       |
+| serverPool | 20.0.0.1                     | 20.0.0.0         | 255.255.255.0   | 4        |
+| Subnet1    | 192.168.23.1                 | 192.168.23.2     | 255.255.255.192 | 62       |
+| Subnet2    | 192.168.23.65                | 192.168.23.66    | 255.255.255.192 | 62       |
 
 | Pool Name  | Default gateway & DNS Server | Start IP Address | Subnet Mask     | Max User |
 | ---------- | ---------------------------- | ---------------- | --------------- | -------- |
-| serverPool | 20.0.0.2                     | 192.168.23.128   | 255.255.255.252 | 4        |
-| Subnet3    | 20.0.0.2                     | 192.168.23.130   | 255.255.255.192 | 62       |
-| Subnet4    | 20.0.0.2                     | 192.168.23.194   | 255.255.255.192 | 62       |
+| serverPool | 30.0.0.1                     | 30.0.0.0         | 255.255.255.0   | 4        |
+| Subnet3    | 192.168.23.129               | 192.168.23.130   | 255.255.255.192 | 62       |
+| Subnet4    | 192.168.23.193               | 192.168.23.194   | 255.255.255.192 | 62       |
 
 ### Configurar VLAN Trunking Protocol
 
 Para evitar crear las VLAN en todos los MultiLayer Switch y Switch Layer 2, se utiliza el protocolo VLAN Trunking Protocol (VTP), se escoge el MultiLayer Switch 0 (MLS0) como servidor y el resto se configuran en modo cliente.
+
+:warning: Nota a futuro: Más adelante vamos a configurar el protocolo LACP y las interfaces se van a utilizar el comando `no switchport` para asignar una dirección ip, esto los convierte en interfaces de capa 3 mientras que VTP (VLAN Trunking Protocol) funciona en capa 2, lo que evitaria la propagación de las VLAN en todos los Switch de cada edificio, por tal razón utilizamos enlaces truncales primero y que las VLAN se puedan propagar en un inicio, luego cualquier nueva VLAN o modificación hay que hacerla manual o configurar nuevos Switch en modo servidor.
 
 #### MLS0
 
@@ -80,7 +82,7 @@ MLS0(config)#vtp domain usac.g23
 MLS0(config)#vtp password g23
 ```
 
-#### MLS1 al MLS11 y S0 al S3
+#### MLS1-11 y S0-3
 
 ```bash
 Switch>en
@@ -92,53 +94,18 @@ MLS1(config)#vtp domain usac.g23
 MLS1(config)#vtp password g23
 ```
 
-### Configurar enlaces truncales
-
-Para permitir la propagación de la información de las VLAN por todos los Switches en el dominio, se necesita configurar los puertos en modo truncal entre ellos.
-
-| Switch | Rango interfaces              | VLAN        |
-| ------ | ----------------------------- | ----------- |
-| MLS0   | g1/0/1 (DHCP1)                | 10,20       |
-| MLS0   | g1/0/2 (DHCP2)                | 30,40       |
-| MLS0   | g1/1/1                        | 10,20       |
-| MLS0   | g1/1/2                        | 30,40       |
-| MLS3   | f0/4-5                        | 10,20       |
-| MLS4   | f0/4-5                        | 10,20       |
-| MLS5   | f0/5-6                        | 10,20       |
-| MLS6   | f0/5-6                        | 10,20       |
-| MLS6   | f0/10                         | 10          |
-| MLS6   | f0/11                         | 20          |
-| MLS7   | f0/4-5                        | 30,40       |
-| MLS8   | f0/4-5                        | 30,40       |
-| MLS9   | f0/5-6                        | 30,40       |
-| MLS10  | f0/5-6                        | 30,40       |
-| MLS10  | f0/10                         | 40          |
-| MLS10  | f0/11                         | 30          |
-| MLS11  | g1/0/1                        | 10,20,30,40 |
-| S0     | f0/10                         | 10          |
-| S1     | f0/10                         | 20          |
-| S2     | f0/10                         | 40          |
-| S3     | f0/10                         | 30          |
-
-```bash
-MLS0(config)#int range <insertar rango>
-MLS0(config)#switchport trunk encapsulation dot1q // Solo para interfaces FastEthernet conectando a Switch Layer 2 no MultiLayer Switch
-MLS0(config-if-range)#switchport mode trunk
-MLS0(config-if-range)#switchport trunk allowed vlan <insert vlans>
-```
-
-Nota: Las interfaces del rango `g1/0/1-2` se configuran en modo truncal ya que no pueden manejar nativamente múltiples VLAN sin modo truncal.
-
 ### Configurar VLANs
 
-Una vez configurados los enlaces truncales, procedemos a crear las VLAN en el Switch Servidor
+Al tener cuatro subnets y dos servidores DHCP que van a servir dos subnets cada uno, además de una misma interfaz para conectar a cada servidor, es más fácil crear cuatro VLAN's para separar el tráfico de cada subnet y crear dos VLAN específicas para luego utilizar Switch Virtaul Interfaces (SVIs) y configurar DHCP Relay (Helper Addresses) para reenviar las peticiones de DHCP al servidor correcto. 
 
-| VLAN | Nombre                 |
-| ---- | ---------------------- |
-| 10   | VLAN_Naranja1_Grupo_23 |
-| 20   | VLAN_Verde2_Grupo_23   |
-| 30   | VLAN_Naranja3_Grupo_23 |
-| 40   | VLAN_Verde4_Grupo_23   |
+| VLAN | Nombre                 | Nota           |
+| ---- | ---------------------- | -------------- |
+| 10   | VLAN_Naranja1_Grupo_23 |                |
+| 20   | VLAN_Verde2_Grupo_23   |                |
+| 30   | VLAN_Verde3_Grupo_23   |                |
+| 40   | VLAN_Naranja4_Grupo_23 |                |
+| 98   | Link_To_DHCP1          | Solo para MLS0 |
+| 99   | Link_To_DHCP2          | Solo para MLS0 |
 
 #### MLS0
 
@@ -149,12 +116,58 @@ MLS0(config-vlan)#name <insertar nombre>
 
 Nota: Utilizar el mismo identificador de VLAN para diferentes subnets en el mismo Switch puede causar conflictos porque los VLAN IDs son identificadores únicos para transmitir dominios dentro de un Switch.
 
+### Configurar enlaces en modo truncal
+
+Para permitir la propagación de la información de las VLAN por todos los Switches en el dominio, se necesita configurar los puertos en modo truncal entre ellos.
+
+| Switch | Rango interfaces              | VLAN        |
+| ------ | ----------------------------- | ----------- |
+| MLS0   | g1/1/1-2                      | 10,20,30,40 |
+| MLS11  | g1/1/1-2                      | 10,20,30,40 |
+| MLS1   | g1/1/1-3                      | 10,20,30,40 |
+| MLS1   | g1/0/1-3                      | 10,20       |
+| MLS2   | g1/1/1-3                      | 10,20,30,40 |
+| MLS2   | g1/0/1-3                      | 30,40       |
+
+```bash
+MLS0(config)#int range <insertar rango>
+MLS0(config-if-range)#switchport # Los pueertos gigabit ethernet del switch 3650 vienen por defecto como no switchport
+MLS0(config-if-range)#switchport mode trunk
+MLS0(config-if-range)#switchport trunk allowed vlan <insert vlans>
+```
+
+| Switch | Rango interfaces              | VLAN        |
+| ------ | ----------------------------- | ----------- |
+| MLS3   | f0/1-5                        | 10,20       |
+| MLS4   | f0/1-2                        | 10,20       |
+| MLS5   | f0/1-2                        | 10,20       |
+| MLS6   | f0/1-4                        | 10,20       |
+| MLS7   | f0/1-5                        | 30,40       |
+| MLS8   | f0/1-2                        | 30,40       |
+| MLS9   | f0/1-2                        | 30,40       |
+| MLS10  | f0/1-4                        | 30,40       |
+| S0     | f0/1                          | 10          |
+| S1     | f0/1                          | 20          |
+| S2     | f0/1                          | 30          |
+| S3     | f0/1                          | 40          |
+
+
+```bash
+MLS3(config)#int range <insertar rango>
+MLS3(config-if-range)#switchport mode trunk
+MLS3(config-if-range)#switchport trunk allowed vlan <insert vlans>
+```
+
+:warning: Nota: Si las VLAN no se propagan luego de configurar los enlaces truncales, se puede probar recargar MLS0, MLS1 o MLS2 para corregir ese error utilizando `reload`.
+
 ### Configurar enlaces en modo acceso
 
-Luego de crear las VLANs, podemos continuar a configurar los interfaces que conectan con los dispositivos finales en modo acceso con su correspondiente VLAN.
+Luego de crear las VLANs, podemos continuar a configurar los interfaces que conectan hacia los servidores DHCP y dispositivos finales.
 
 | Switch | Rango de interfaz | VLAN asignada |
 | ------ | ----------------- | ------------- |
+| MLS0   | g1/0/1 (DHCP1)    | 98            |
+| MLS0   | g1/0/2 (DHCP2)    | 99            |
 | S0     | f0/11-12          | 10 (Naranja)  |
 | S1     | f0/11-12          | 20 (Verde)    |
 | S2     | f0/11-12          | 40 (Verde)    |
@@ -241,7 +254,7 @@ MLS2(config-if)#no shutdown
 # MLS2 → MLS11
 MLS2(config-if)#int g1/1/2
 MLS2(config-if)#no switchport
-MLS2(config-if)#ip address 12.0.0.1 255.255.255.240
+MLS2(config-if)#ip address 13.0.0.1 255.255.255.240
 MLS2(config-if)#no shutdown
 ```
 
@@ -271,6 +284,8 @@ MLS0(config-router)#network 10.0.0.0 0.0.0.15
 MLS0(config-router)#network 11.0.0.0 0.0.0.15
 MLS0(config-router)#network 192.168.23.0 0.0.0.63
 MLS0(config-router)#network 192.168.23.64 0.0.0.63
+MLS0(config-router)#network 192.168.23.128 0.0.0.63
+MLS0(config-router)#network 192.168.23.192 0.0.0.63
 MLS0(config-router)#no auto-summary
 ```
 
@@ -308,36 +323,41 @@ MLS11(config-router)#network 13.0.0.0 0.0.0.15
 MLS11(config-router)#no auto-summary
 ```
 
-### Configurar SVI
+### Configurar SVI y DHCP Relay
+
+Al utilizar Switch Virtual Interfaces (SVIs) podemos implementar interfaces lógicas asociadas a las VLANs permitiendo al Switch usar routing de capa 3. Ademas con el uso de DHCP Relay (`ip helper-address`), le indicamos al Switch que reenvié el broadcast de DHCP a un servidor DHCP específico.
 
 ### MSL0
 
 ```bash
+#VLAN to DHCP 1
+MLS0(config)#int vlan 98
+MLS0(config-if)#ip address 20.0.0.1 255.255.255.0
+MLS0(config-if)#no shutdown
 #VLAN 10 Interface
-MLS0(config)# int vlan 10
-MLS0(config-if)# ip address 192.168.23.1 255.255.255.192
-MLS0(config-if)# ip helper-address 20.0.0.1
-MLS0(config-if)# no shutdown
-MLS0(config-if)# exit
-
+MLS0(config-if)#int vlan 10
+MLS0(config-if)#ip address 192.168.23.1 255.255.255.192
+MLS0(config-if)#no shutdown
+MLS0(config-if)#ip helper-address 20.0.0.10
 #VLAN 20 Interface
-MLS0(config)# int vlan 20
-MLS0(config-if)# ip address 192.168.23.65 255.255.255.192
-MLS0(config-if)# ip helper-address 20.0.0.1
-MLS0(config-if)# no shutdown
-MLS0(config-if)# exit
+MLS0(config-if)#int vlan 20
+MLS0(config-if)#ip address 192.168.23.65 255.255.255.192
+MLS0(config-if)#no shutdown
+MLS0(config-if)#ip helper-address 20.0.0.10
 
+#VLAN to DHCP 2
+MLS0(config)#int vlan 99
+MLS0(config-if)#ip address 30.0.0.1 255.255.255.0
+MLS0(config-if)#no shutdown
 #VLAN 30 Interface
-MLS0(config)# int vlan 30
-MLS0(config-if)# ip address 192.168.23.129 255.255.255.192
-MLS0(config-if)# ip helper-address 20.0.0.2
-MLS0(config-if)# no shutdown
-MLS0(config-if)# exit
-
+MLS0(config-if)#int vlan 30
+MLS0(config-if)#ip address 192.168.23.129 255.255.255.192
+MLS0(config-if)#no shutdown
+MLS0(config-if)#ip helper-address 30.0.0.10
 #VLAN 40 Interface
-MLS0(config)# int vlan 40
-MLS0(config-if)# ip address 192.168.23.193 255.255.255.192
-MLS0(config-if)# ip helper-address 20.0.0.2
-MLS0(config-if)# no shutdown
-MLS0(config-if)# exit
+MLS0(config-if)#int vlan 40
+MLS0(config-if)#ip address 192.168.23.193 255.255.255.192
+MLS0(config-if)#no shutdown
+MLS0(config-if)#ip helper-address 30.0.0.10
+MLS0(config-if)#exit
 ```
