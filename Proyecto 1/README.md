@@ -22,14 +22,16 @@ A continuación se describen los pasos realizados para configurar el proyecto:
 
 ## Índice
 1. [Configurar servidores DHCP](#configurar-servidores-dhcp)
-2. [Configurar VLAN Trunking Protocol](#configurar-vlan-trunking-protocol)
-3. [Configurar VLANs](#configurar-vlans)
-4. [Configurar enlaces en modo truncal](#configurar-enlaces-en-modo-truncal)
-5. [Configurar enlaces en modo acceso](#configurar-enlaces-en-modo-acceso)
-6. [Configurar LACP](#configurar-lacp)
-7. [Asignar direcciones IP en Switch MultiLayer](#asignar-direcciones-ip-en-switch-multilayer)
-8. [Configurar EIGRP](#configurar-eigrp)
-9. [Configurar SVI y DHCP Relay](#configurar-svi-y-dhcp-relay)
+2. [Cambios en Switch Multicapa 3650-24PS](#cambios-en-switch-multicapa-3650-24ps)
+3. [Configurar VLAN Trunking Protocol](#configurar-vlan-trunking-protocol)
+4. [Configurar VLANs](#configurar-vlans)
+5. [Configurar enlaces en modo truncal](#configurar-enlaces-en-modo-truncal)
+6. [Configurar enlaces en modo acceso](#configurar-enlaces-en-modo-acceso)
+7. [Configurar LACP](#configurar-lacp)
+8. [Asignar direcciones IP en Switch MultiLayer](#asignar-direcciones-ip-en-switch-multilayer)
+9. [Configurar EIGRP](#configurar-eigrp)
+10. [Configurar SVI y DHCP Relay](#configurar-svi-y-dhcp-relay)
+11. [Servidor Web](#servidor-web)
 
 ### Configurar servidores DHCP
 
@@ -63,6 +65,12 @@ A continuación se describen los pasos realizados para configurar el proyecto:
 | serverPool | 30.0.0.1                     | 30.0.0.0         | 255.255.255.0   | 4        |
 | Subnet3    | 192.168.23.129               | 192.168.23.130   | 255.255.255.192 | 62       |
 | Subnet4    | 192.168.23.193               | 192.168.23.194   | 255.255.255.192 | 62       |
+
+### Cambios en Switch Multicapa 3650-24PS
+
+Para utilizar el Switch MultiCapa 3650-24PS, se debe agregar una fuente de alimentación y cuatro módulos GLC-LH-SMD para soportar la conexión con cable de fibra como se describe en el enunciado.
+
+![Agregar módulos a Switch](./screenshots/2_1.jpg)
 
 ### Configurar VLAN Trunking Protocol
 
@@ -320,6 +328,7 @@ MLS11(config)#ip routing
 MLS11(config)#router eigrp 23
 MLS11(config-router)#network 12.0.0.0 0.0.0.15
 MLS11(config-router)#network 13.0.0.0 0.0.0.15
+MLS11(config-router)#network 40.0.0.0 0.0.0.15
 MLS11(config-router)#no auto-summary
 ```
 
@@ -327,7 +336,7 @@ MLS11(config-router)#no auto-summary
 
 Al utilizar Switch Virtual Interfaces (SVIs) podemos implementar interfaces lógicas asociadas a las VLANs permitiendo al Switch usar routing de capa 3. Ademas con el uso de DHCP Relay (`ip helper-address`), le indicamos al Switch que reenvié el broadcast de DHCP a un servidor DHCP específico.
 
-### MSL0
+#### MSL0
 
 ```bash
 #VLAN to DHCP 1
@@ -361,3 +370,78 @@ MLS0(config-if)#no shutdown
 MLS0(config-if)#ip helper-address 30.0.0.10
 MLS0(config-if)#exit
 ```
+
+### Servidor Web
+
+#### Actuliazar index.html
+Eliminar todas los archivos en el servicio de `HTTP` a excepción de `index.html` y reemplazar el contenido con el siguiente HTML:
+
+![Reemplazar contenido index.html](./screenshots/11_1.jpg)
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redes 2 Sección N - 2024 2do Semestre</title>
+    <style>
+        table {
+            width: 50%;
+            border-collapse: collapse;
+            margin: 20px auto;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h2 style="text-align: center;">Grupo 23</h2>
+    <table>
+        <tr>
+            <th>Carnet</th>
+            <th>Nombre</th>
+        </tr>
+        <tr>
+            <td>201114340</td>
+            <td>Edgar Mauricio Gómez Flores</td>
+        </tr>
+        <tr>
+            <td>201020232</td>
+            <td>Daniel Eduardo Mellado Ayala</td>
+        </tr>
+        <tr>
+            <td>201900822</td>
+            <td>Osmar Noel Chacón Lemus</td>
+        </tr>
+    </table>
+</body>
+</html>
+```
+
+#### Configurar servidor
+
+| IP Address     | Subnet Mask     | Default Gateway | DNS Server |
+| -------------- | --------------- | --------------- | ---------- |
+| 40.0.0.10      | 255.255.255.0   | 40.0.0.1        | 40.0.0.1   |
+
+#### Actulizar MLS11 para utilizar como default gateway
+
+```bash
+MLS0(config)#int g1/0/1
+MLS0(config-if)#no switchport
+MLS0(config-if)#ip address 40.0.0.1 255.255.255.0
+MLS0(config-if)#no shutdown
+```
+
+#### Cargar página de prueba
+
+![Página web](./screenshots/11_2.jpg)
