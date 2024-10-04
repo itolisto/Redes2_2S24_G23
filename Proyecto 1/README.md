@@ -32,6 +32,7 @@ A continuación se describen los pasos realizados para configurar el proyecto:
 9. [Configurar EIGRP](#configurar-eigrp)
 10. [Configurar SVI y DHCP Relay](#configurar-svi-y-dhcp-relay)
 11. [Servidor Web](#servidor-web)
+11. [Configuracion HSRP de la red](#configuracion-hsrp-de-la-red)
 
 ### Configurar servidores DHCP
 
@@ -281,6 +282,45 @@ MLS11(config-if)#ip address 13.0.0.2 255.255.255.240
 MLS11(config-if)#no shutdown
 ```
 
+#### MLS3-6 y MLS-7-10
+
+##### Lado izquierdo
+
+| MLS # | Interfaz   | Networks  |
+| ----- | ---------- | --------- |
+| 3     | f0/4       | 15.0.1.1  |
+| 3     | f0/5       | 15.0.2.1  |
+| 4     | f0/1       | 15.0.1.2  |
+| 4     | f0/2       | 15.0.2.2  |
+| 5     | f0/1       | 15.0.2.3  |
+| 5     | f0/2       | 15.0.1.3  |
+| 6     | f0/1       | 15.0.2.4  |
+| 6     | f0/2       | 15.0.1.4  |
+
+* Port-channel1 en MLS3 se configuro al momento de configurar LACP
+
+##### Lado derecho
+
+| MLS # | Interfaz   | Networks  |
+| ----- | ---------- | --------- |
+| 7     | f0/4       | 16.0.1.1  |
+| 7     | f0/5       | 16.0.2.1  |
+| 8     | f0/1       | 16.0.1.2  |
+| 8     | f0/2       | 16.0.2.2  |
+| 9     | f0/1       | 16.0.2.3  |
+| 9     | f0/2       | 16.0.1.3  |
+| 10    | f0/1       | 16.0.2.4  |
+| 10    | f0/2       | 16.0.1.4  |
+
+* Port-channel1 en MLS7 se configuro al momento de configurar LACP
+
+```bash
+MLS3(config)#int <reemplazar interfaz>
+MLS3(config-if)#no switchport
+MLS3(config-if)#ip address <reemplazar ip> 255.255.255.240
+MLS3(config-if)#no shutdown
+```
+
 ### Configurar EIGRP
 
 #### MLS0
@@ -330,6 +370,36 @@ MLS11(config-router)#network 12.0.0.0 0.0.0.15
 MLS11(config-router)#network 13.0.0.0 0.0.0.15
 MLS11(config-router)#network 40.0.0.0 0.0.0.15
 MLS11(config-router)#no auto-summary
+```
+
+#### MLS3-6 y MLS-7-10
+
+##### Lado izquierdo
+
+| MLS # | Networks                         |
+| ----- | -------------------------------- |
+| 3     | 15.0.0.0, 15.0.1.0, 15.0.2.0     |
+| 4     | 15.0.1.0, 15.0.2.0, 192.168.23.0 |
+| 5     | 15.0.1.0, 15.0.2.0, 192.168.23.0 |
+| 6     | 15.0.1.0, 15.0.2.0, 192.168.23.0 |
+
+##### Lado derecho
+
+| MLS # | Networks                         |
+| ----- | -------------------------------- |
+| 7     | 16.0.0.0, 16.0.1.0, 16.0.2.0     |
+| 8     | 16.0.1.0, 16.0.2.0, 192.168.23.0 |
+| 9     | 16.0.1.0, 16.0.2.0, 192.168.23.0 |
+| 10    | 16.0.1.0, 16.0.2.0, 192.168.23.0 |
+
+```bash
+MLS4(config)#ip routing
+MLS4(config)#router eigrp 23
+MLS4(config-router)#network 15.0.0.0 0.0.0.15
+MLS4(config-router)#network 15.0.1.0 0.0.0.15
+MLS4(config-router)#network 15.0.2.0 0.0.0.15
+MLS4(config-router)#network 192.168.23.0 0.0.0.255
+MLS4(config-router)#no auto-summary
 ```
 
 ### Configurar SVI y DHCP Relay
@@ -450,8 +520,8 @@ MLS0(config-if)#no shutdown
 
 
 ### Configuracion HSRP de la red
-#### Lado izquierdo
 
+#### Lado izquierdo
 
 Para esta parte de la red de la topologia se va escoger que Switch se va  escoger que sea de mayor prioridad o menor prioridad, ya que es como un balanceador, un switch que va estar activo y otro que va estar en espera o pasivo, se escoge el switch MLS4 como el switch activo y el MLS5 como el pasivo
 
@@ -460,7 +530,8 @@ MLS4(config)#interface vlan 10
 MLS4(config-if)#ip address 192.168.23.2 255.255.255.192
 MLS4(config-if)#standby 1 ip 192.168.23.1
 MLS4(config-if)#standby 1 priority 110   
-MLS4(config-if)#standby 1 preempt       
+MLS4(config-if)#standby 1 preempt
+MLS4(config-if)#ip helper-address 15.0.0.1
 MLS4(config-if)#exit
 MLS4(config)#
 MLS4(config)#
@@ -468,29 +539,39 @@ MLS4(config)#interface vlan 20
 MLS4(config-if)#ip address 192.168.23.66 255.255.255.192
 MLS4(config-if)#standby 1 ip 192.168.23.65
 MLS4(config-if)#standby 1 priority 110   
-MLS4(config-if)#standby 1 preempt       
+MLS4(config-if)#standby 1 preempt
+MLS4(config-if)#ip helper-address 15.0.0.1
 MLS4(config-if)#exit
 ```
-
 Aqui se activa por medio de las VLAN 10 y 20, con las direcciones IP que se tienen configuradas y se da una prioridad de 110 para tener este switch como activo
 ![HRSP_MLS4](./screenshots/HRSP_MLS4.jpg)
-
 
 ```bash
 MLS5(config)#interface vlan 10
 MLS5(config-if)#ip address 192.168.23.3 255.255.255.192
 MLS5(config-if)#standby 1 ip 192.168.23.1
 MLS5(config-if)#standby 1 priority 90 
-MLS5(config-if)#standby 1 preempt       
+MLS5(config-if)#standby 1 preempt
+MLS5(config-if)#ip helper-address 15.0.0.1
 MLS5(config-if)#exit
 MLS5(config)#
 MLS5(config)#interface vlan 20
 MLS5(config-if)#ip address 192.168.23.67 255.255.255.192
 MLS5(config-if)#standby 1 ip 192.168.23.65
 MLS5(config-if)#standby 1 priority 90 
-MLS5(config-if)#standby 1 preempt       
+MLS5(config-if)#standby 1 preempt
+MLS5(config-if)#ip helper-address 15.0.0.1
 MLS5(config-if)#exit
 ```
 Aqui el switch ha sido configurado con las mismas ip y vlans, pero con la  prioridad mas baja para poner el switch como pasivo o en espera
 
 ![HRSP_MLS5](./screenshots/HRSP_MLS5.jpg)
+
+Finalmente debemos crear las interfaces virtuales SVI en el Switch MSL6 y asignarles direcciones IP para que los dispositivos en esas VLAN puedan utilizarla como gateway.
+
+```bash
+MLS6(config)#int vlan10
+MLS6(config-if)#ip address 192.168.23.4 255.255.255.192
+MLS6(config-if)#int vlan20
+MLS6(config-if)#ip address 192.168.23.68 255.255.255.192
+```
