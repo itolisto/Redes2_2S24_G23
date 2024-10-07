@@ -518,14 +518,103 @@ show standby
 
 ------------------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------------
-Switch MLS0
 
+### Comandos Corregidos
+
+#### Configuracion VTP en los switches
+
+Para el switch MLS0
+```bash
+vtp mode server
+vtp domain usac.g23
+vtp password g23
+```
+Para los demas switches restantes
+```bash
+vtp mode client
+vtp domain usac.g23
+vtp password g23
+```
+
+#### Creacion de VLANs
+
+```bash
+vlan 10
+name VLAN_Naranja1_Grupo_23
+exit
+
+vlan 20
+name VLAN_Verde2_Grupo_23
+exit
+
+vlan 30
+name VLAN_Verde3_Grupo_23
+exit
+
+vlan 40
+name VLAN_Naranja4_Grupo_23
+exit
+```
+
+
+
+
+
+### Configurar enlaces en modo truncal
+
+Para permitir la propagación de la información de las VLAN por todos los Switches en el dominio, se necesita configurar los puertos en modo truncal entre ellos.
+
+| Switch | Rango interfaces              | VLAN        |
+| ------ | ----------------------------- | ----------- |
+| MLS0   | g1/1/1-2                      | 10,20,30,40 |
+| MLS11  | g1/1/1-2                      | 10,20,30,40 |
+| MLS1   | g1/1/1-3                      | 10,20,30,40 |
+| MLS1   | g1/0/1-3                      | 10,20       |
+| MLS2   | g1/1/1-3                      | 10,20,30,40 |
+| MLS2   | g1/0/1-3                      | 30,40       |
+
+```bash
+MLS0(config)#int range <insertar rango>
+MLS0(config-if-range)#switchport # Los pueertos gigabit ethernet del switch 3650 vienen por defecto como no switchport
+MLS0(config-if-range)#switchport mode trunk
+MLS0(config-if-range)#switchport trunk allowed vlan <insert vlans>
+```
+
+| Switch | Rango interfaces              | VLAN        |
+| ------ | ----------------------------- | ----------- |
+| MLS3   | f0/1-5                        | 10,20       |
+| MLS4   | f0/1-2                        | 10,20       |
+| MLS5   | f0/1-2                        | 10,20       |
+| MLS6   | f0/1-4                        | 10,20       |
+| MLS7   | f0/1-5                        | 30,40       |
+| MLS8   | f0/1-2                        | 30,40       |
+| MLS9   | f0/1-2                        | 30,40       |
+| MLS10  | f0/1-4                        | 30,40       |
+| S0     | f0/1                          | 10          |
+| S1     | f0/1                          | 20          |
+| S2     | f0/1                          | 30          |
+| S3     | f0/1                          | 40          |
+
+
+```bash
+MLS3(config)#int range <insertar rango>
+MLS3(config-if-range)#switchport mode trunk
+MLS3(config-if-range)#switchport trunk allowed vlan <insert vlans>
+```
+
+### Aplicacion de ruteo para las interfaces
+
+#### Switch MLS0
+
+```bash
 interface g1/0/1
 switchport
 switchport mode access
 switchport access vlan 10
 switchport access vlan 20
 exit
+
+
 
 interface g1/0/1
 no switchport
@@ -537,18 +626,23 @@ no switchport
 ip address 10.0.0.1 255.255.255.240
 no shutdown
 exit
+```
 
 
 
+#### Switch MLS1
 
------Switch MLS1
+```bash
 interface g1/1/1
 no switchport
 ip address 10.0.0.2 255.255.255.240
 no shutdown
 exit
 
-LACP
+```
+#### LACP
+
+```bash
 interface port-channel 1
 no switchport
 ip address 15.0.0.1 255.255.255.240
@@ -558,10 +652,12 @@ no switchport
 channel-group 1 mode active
 exit
 
+```
 
-------switch MLS3
+#### Switch MLS3
+#### LACP
 
-LACP
+```bash
 interface port-channel 1
 no switchport
 ip address 15.0.0.2 255.255.255.240
@@ -570,7 +666,9 @@ interface range g1/0/1-3
 no switchport
 channel-group 1 mode active
 exit
+```
 
+```bash
 interface g1/0/4
 no switchport
 ip address 15.0.1.2 255.255.255.240
@@ -582,8 +680,11 @@ ip address 15.0.2.2 255.255.255.240
 no shutdown
 exit
 
+```
 
----------Switch MLS4
+#### Switch MLS4
+
+```bash
 interface g1/0/4 
 no switchport
 ip address 15.0.1.3 255.255.255.240
@@ -594,10 +695,12 @@ no switchport
 ip address 15.0.3.1 255.255.255.240
 no shutdown
 exit
+```
 
 
+#### Switch MLS5
 
----------Switch MLS5
+```bash
 interface g1/0/5 
 no switchport
 no ip address 15.0.2.3 255.255.255.240
@@ -608,10 +711,12 @@ no switchport
 no ip address 15.0.4.1 255.255.255.240
 no shutdown
 exit
+```
 
 
+#### Switch MLS6
 
-------Switch MLS6
+```bash
 interface g1/0/1
 no switchport
 ip address 15.0.3.2 255.255.255.240
@@ -631,11 +736,13 @@ interface vlan 20
 ip address 192.168.23.65 255.255.255.192
 no shutdown
 exit
+```
 
 
 
+#### Switches Normales 2960
 
-switch normal 
+```bash
 interface f0/1
 switchport mode trunk
 switchport trunk allowed vlan all
@@ -661,44 +768,14 @@ switchport mode access
 switchport access vlan 20
 exit
 
-interface f0/4
-switchport mode access
-switchport access vlan 10
-exit
+```
 
 
+### EIGRP
 
+#### MLS0
 
-
-vtp mode server
-vtp domain usac.g23
-vtp password g23
-
-vtp mode client
-vtp domain usac.g23
-vtp password g23
-
-
-vlan 10
-name VLAN_Naranja1_Grupo_23
-exit
-
-vlan 20
-name VLAN_Verde2_Grupo_23
-exit
-
-vlan 30
-name VLAN_Verde3_Grupo_23
-exit
-
-vlan 40
-name VLAN_Naranja4_Grupo_23
-exit
-
-
-
-
-EIGRP
+```bash
 ip routing
 router eigrp 23
 network 10.0.0.0 0.0.0.15
@@ -706,8 +783,11 @@ network 20.0.0.0 0.0.0.255
 network 192.168.23.0 0.0.0.63
 network 192.168.23.64 0.0.0.63
 exit
+```
 
 
+#### MLS1
+```bash
 ip routing
 router eigrp 23
 network 10.0.0.0 0.0.0.15
@@ -716,8 +796,10 @@ network 192.168.23.0 0.0.0.63
 network 192.168.23.64 0.0.0.63
 network 15.0.0.0 0.0.0.15
 exit
+```
 
-
+#### MLS3
+```bash
 ip routing
 router eigrp 23
 network 20.0.0.0 0.0.0.255
@@ -727,7 +809,12 @@ network 15.0.0.0 0.0.0.15
 network 15.0.1.0 0.0.0.15
 network 15.0.2.0 0.0.0.15
 exit
+```
 
+
+#### MLS4
+
+```bash
 ip routing
 router eigrp 23
 network 20.0.0.0 0.0.0.255
@@ -736,8 +823,11 @@ network 192.168.23.64 0.0.0.63
 network 15.0.1.0 0.0.0.15
 network 15.0.3.0 0.0.0.15
 exit
+```
 
+#### MLS5
 
+```bash
 ip routing
 router eigrp 23
 network 20.0.0.0 0.0.0.255
@@ -746,7 +836,11 @@ network 192.168.23.64 0.0.0.63
 network 15.0.2.0 0.0.0.15
 network 15.0.4.0 0.0.0.15
 exit
+```
 
+#### MLS6
+
+```bash
 ip routing
 router eigrp 23
 network 20.0.0.0 0.0.0.255
@@ -755,11 +849,14 @@ network 192.168.23.64 0.0.0.63
 network 15.0.3.0 0.0.0.15
 network 15.0.4.0 0.0.0.15
 exit
+```
 
 
 
 
-
+### Configuracion HSRP de la red de lado izquierdo
+#### MLS4
+```bash
 interface vlan 10
 ip address 192.168.23.2 255.255.255.192
 standby 1 ip 192.168.23.1
@@ -772,8 +869,10 @@ standby 1 ip 192.168.23.65
 standby 1 priority 110   
 standby 1 preempt       
 exit
+```
 
-
+#### MLS5
+```bash
 interface vlan 10
 ip address 192.168.23.2 255.255.255.192
 standby 1 ip 192.168.23.1
@@ -786,7 +885,11 @@ standby 1 ip 192.168.23.65
 standby 1 priority 90   
 standby 1 preempt       
 exit
+```
 
+#### MLS6
+Para que funcione el DHCP
+```bash
 interface vlan 10
 ip helper-address 192.168.23.1
 exit
@@ -800,3 +903,4 @@ exit
 interface vlan 20
 ip helper-address 20.0.0.2
 exit
+```
