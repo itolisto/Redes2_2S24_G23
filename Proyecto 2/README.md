@@ -412,3 +412,177 @@ exit
 
 
 ```
+
+
+# COMANDOS DE RED CONEXIONES FUTURAS
+
+```code
+enable
+conf t
+vlan 50
+name Clientes
+exit
+vlan 10
+name Seguridad
+exit
+
+
+enable
+conf t
+vlan 60
+name Clientes1
+exit
+
+interface f0/1
+switchport mode trunk
+switchport trunk allowed vlan all
+exit
+
+interface range f0/2-4
+switchport mode access
+switchport access vlan 50
+exit
+
+
+
+interface f0/1
+switchport mode trunk
+switchport trunk allowed vlan all
+exit
+
+interface f0/2
+switchport mode trunk
+switchport trunk allowed vlan all
+exit
+
+interface f0/3
+switchport mode access
+switchport access vlan 10
+exit
+
+
+
+interface f0/1
+switchport mode trunk
+switchport trunk allowed vlan all
+exit
+
+interface range f0/2-4
+switchport mode access
+switchport access vlan 50
+exit
+
+interface range f0/2-4
+switchport mode access
+switchport access vlan 60
+exit
+
+
+
+
+
+interface f1/0.50
+encapsulation dot1Q 50
+ip address 192.168.50.1 255.255.255.0
+exit
+interface f1/0
+no shutdown
+exit
+interface f0/0
+no shutdown
+exit
+
+
+
+interface f1/0.10
+encapsulation dot1Q 10
+ip address 192.168.10.1 255.255.255.0
+exit
+interface f1/0
+no shutdown
+exit
+interface f0/0
+no shutdown
+exit
+
+
+interface f1/0.60
+encapsulation dot1Q 60
+ip address 192.168.60.1 255.255.255.0
+exit
+
+
+router ospf 1
+network 192.168.50.0 0.0.0.255 area 0
+network 192.168.60.0 0.0.0.255 area 0
+network 192.168.10.0 0.0.0.255 area 0
+network 10.0.0.0 0.0.0.63 area 0
+network 11.0.0.0 0.0.0.63 area 0
+network 12.0.0.0 0.0.0.63 area 0
+network 13.0.0.0 0.0.0.63 area 0
+exit
+
+enable
+conf t
+interface s2/0
+ip address 10.0.0.2 255.255.255.192
+no shutdown
+exit
+
+
+enable
+conf t
+interface s2/0
+ip address 11.0.0.2 255.255.255.192
+no shutdown
+exit
+
+
+enable
+conf t
+interface s2/0
+ip address 12.0.0.2 255.255.255.192
+no shutdown
+exit
+
+
+  	
+
+enable
+conf t
+interface s2/0
+ip address 13.0.0.2 255.255.255.192
+no shutdown
+exit
+
+
+
+enable
+conf t
+interface s2/0
+ip address 10.0.0.1 255.255.255.192
+no shutdown
+exit
+interface s3/0
+ip address 11.0.0.1 255.255.255.192
+no shutdown
+exit
+
+interface s4/0
+ip address 12.0.0.1 255.255.255.192
+no shutdown
+exit
+
+interface s5/0
+ip address 13.0.0.1 255.255.255.192
+no shutdown
+exit
+
+interface f0/1
+channel-group 1 mode active
+exit
+
+interface f0/2
+channel-group 2 mode pasive
+exit
+```
