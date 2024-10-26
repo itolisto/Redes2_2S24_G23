@@ -586,3 +586,121 @@ interface f0/2
 channel-group 2 mode pasive
 exit
 ```
+
+# COMANDOS INTERCONEXION DE ISPs
+
+## MSW1
+```bash
+enable
+conf t
+hostname MSW1
+ip routing
+interface g1/1/1
+no switchport
+ip address 172.23.1.1 255.255.255.240
+no shutdown
+exit
+interface g1/1/2
+no switchport
+ip address 172.23.2.1 255.255.255.240
+no shutdown
+exit
+interface g1/1/3
+no switchport
+ip address 172.23.3.1 255.255.255.240
+no shutdown
+exit
+router bgp 100
+neighbor 172.23.1.2 remote-as 200
+neighbor 172.23.2.2 remote-as 400
+neighbor 172.23.3.2 remote-as 300
+network 172.23.1.0 mask 255.255.255.240
+exit
+```
+
+## MSW2
+```bash
+enable
+conf t
+hostname MSW2
+ip routing
+interface g1/1/1
+no switchport
+ip address 172.23.1.4 255.255.255.240
+no shutdown
+exit
+interface g1/1/2
+no switchport
+ip address 172.23.2.5 255.255.255.240
+no shutdown
+exit
+interface g1/1/3
+no switchport
+ip address 172.23.3.6 255.255.255.240
+no shutdown
+exit
+router bgp 200
+neighbor 172.23.1.1 remote-as 100
+neighbor 172.23.3.8 remote-as 300
+neighbor 172.23.4.12 remote-as 400
+network 172.23.2.0 mask 255.255.255.240
+exit
+```
+
+## MSW3
+```bash
+enable
+conf t
+hostname MSW3
+ip routing
+interface g1/1/1
+no switchport
+ip address 172.23.3.7 255.255.255.240
+no shutdown
+exit
+interface g1/1/2
+no switchport
+ip address 172.23.3.8 255.255.255.240
+no shutdown
+exit
+interface g1/1/3
+no switchport
+ip address 172.23.3.9 255.255.255.240
+no shutdown
+exit
+router bgp 300
+neighbor 172.23.1.3 remote-as 100
+neighbor 172.23.2.5 remote-as 200
+neighbor 172.23.4.10 remote-as 400
+network 172.23.3.0 mask 255.255.255.240
+exit
+```
+
+## MSW4
+```bash
+enable
+conf t
+hostname MSW4
+ip routing
+interface g1/1/1
+no switchport
+ip address 172.23.4.10 255.255.255.240
+no shutdown
+exit
+interface g1/1/2
+no switchport
+ip address 172.23.4.11 255.255.255.240
+no shutdown
+exit
+interface g1/1/3
+no switchport
+ip address 172.23.4.12 255.255.255.240
+no shutdown
+exit
+router bgp 400
+neighbor 172.23.1.2 remote-as 100
+neighbor 172.23.2.6 remote-as 200
+neighbor 172.23.3.9 remote-as 300
+network 172.23.4.0 mask 255.255.255.240
+exit
+```
